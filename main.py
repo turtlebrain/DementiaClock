@@ -1,10 +1,10 @@
-from flask import Flask
+from flask import Flask, render_template
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "Clock backend is running."
+    return render_template("index.html")
 
 def main():
     app.run(debug=True)
