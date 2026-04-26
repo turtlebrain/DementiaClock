@@ -3,16 +3,105 @@
   <head>
     <title>Dementia Clock</title>
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #f2f2f2;
-        text-align: center;
-        padding-top: 50px;
-      }
-    </style>
+        body {
+          margin: 0;
+          padding: 0;
+          background: #000; /* pure black for max contrast */
+          color: #fff;      /* pure white text */
+          font-family: Arial, sans-serif;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          height: 100vh; /* full screen */
+          text-align: center;
+        }
+      
+        #clock {
+          font-size: 120px;
+          font-weight: bold;
+          margin: 0;
+        }
+      
+        #day {
+          font-size: 48px;
+          margin: 10px 0 0 0;
+        }
+      
+        #date {
+          font-size: 36px;
+          margin: 5px 0 20px 0;
+        }
+      
+        #timeofday {
+          font-size: 48px;
+          margin-top: 20px;
+          color: #ffd700; /* gold for emphasis */
+        }
+      </style>
+      
   </head>
   <body>
-    <h1>Dementia Clock Backend</h1>
-    <p>Your Flask app is serving real HTML now.</p>
+    <h1 id="clock">--:--:--</h1>
+    <h2 id="day">Loading day...</h2>
+    <h3 id="date">Loading date...</h3>
+    <h2 id="timeofday">Loading...</h2>
+    <h2 id="nextReminder">No reminders scheduled</h2>
+
+  
+    <script>
+      function updateClock() {
+        const now = new Date();
+  
+        // Time
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        document.getElementById("clock").textContent = `${hours}:${minutes}:${seconds}`;
+  
+        // Day of week
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        document.getElementById("day").textContent = days[now.getDay()];
+  
+        // Date
+        const months = [
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        ];
+        const month = months[now.getMonth()];
+        const day = now.getDate();
+        const year = now.getFullYear();
+        document.getElementById("date").textContent = `${month} ${day}, ${year}`;
+  
+        // Time of day label
+        const hour = now.getHours();
+        let label = "";
+  
+        if (hour >= 5 && hour < 12) {
+          label = "Morning";
+        } else if (hour >= 12 && hour < 17) {
+          label = "Afternoon";
+        } else if (hour >= 17 && hour < 21) {
+          label = "Evening";
+        } else {
+          label = "Night";
+        }
+  
+        document.getElementById("timeofday").textContent = label;
+      }
+
+      function updateReminder() {
+        // Placeholder for now — this will come from Flask later
+        const placeholderReminder = "Next reminder: Take medication at 8:00 PM";
+
+        // For now, always show the placeholder
+        document.getElementById("nextReminder").textContent = placeholderReminder;
+      }
+  
+      updateClock();
+      setInterval(updateClock, 1000);
+      updateReminder();
+    </script>
   </body>
+  
 </html>
