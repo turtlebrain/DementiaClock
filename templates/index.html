@@ -90,17 +90,24 @@
         document.getElementById("timeofday").textContent = label;
       }
 
-      function updateReminder() {
-        // Placeholder for now — this will come from Flask later
-        const placeholderReminder = "Next reminder: Take medication at 8:00 PM";
+      async function updateReminder() {
+        try {
+          const response = await fetch("/api/next-reminder");
+          const data = await response.json();
 
-        // For now, always show the placeholder
-        document.getElementById("nextReminder").textContent = placeholderReminder;
+          // Example: { title: "Take medication", time: "20:00", timestamp: "2026-04-25T20:00:00" }
+          const text = `${data.title} at ${data.time}`;
+          document.getElementById("nextReminder").textContent = text;
+
+        } catch (error) {
+          document.getElementById("nextReminder").textContent = "No reminders available";
+        }
       }
   
       updateClock();
       setInterval(updateClock, 1000);
-      updateReminder();
+      updateReminder().catch(console.error); // Call updateReminder and handle errors
+      setInterval(updateReminder, 30000); // refresh every 30 seconds
     </script>
   </body>
   
