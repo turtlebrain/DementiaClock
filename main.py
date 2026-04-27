@@ -1,4 +1,6 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request, redirect, url_for
+from db import init_db, get_next_reminder, add_reminder
+
 
 app = Flask(__name__)
 
@@ -8,15 +10,29 @@ def home():
 
 @app.route("/api/next-reminder")
 def api_next_reminder():
-    # Placeholder data — will come from a database later
-    reminder = {
-        "title": "Take medication",
-        "time": "20:00",
-        "timestamp": "2026-04-25T20:00:00"
-    }
+    reminder = get_next_reminder()
+
+    if reminder is None:
+        return jsonify({"message": "no reminders"}), 200
+
     return jsonify(reminder)
 
+@app.route("/dashboard")
+def dashboard():
+    # For now, we only show the form — listing reminders comes later
+    return render_template("dashboard.html")
+
+@app.route("/add-reminder", methods=["POST"])
+def add_reminder_route():
+    title = request.form.get("title")
+    time = request.form.get("time")
+    timestamp = request.form.get("timestamp")
+
+    add_reminder(title, time, timestamp)
+    return redirect(url_for("dashboard"))
+
 def main():
+    init_db()
     app.run(debug=True)
 
 if __name__ == '__main__':
