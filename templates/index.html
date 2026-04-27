@@ -94,15 +94,20 @@
         try {
           const response = await fetch("/api/next-reminder");
           const data = await response.json();
-
-          // Example: { title: "Take medication", time: "20:00", timestamp: "2026-04-25T20:00:00" }
+        
+          if (data.message === "no reminders") {
+            document.getElementById("nextReminder").textContent = "No reminders scheduled";
+            return;
+          }
+        
           const text = `${data.title} at ${data.time}`;
           document.getElementById("nextReminder").textContent = text;
-
+        
         } catch (error) {
-          document.getElementById("nextReminder").textContent = "No reminders available";
+          document.getElementById("nextReminder").textContent = "Unable to load reminders";
         }
       }
+
   
       updateClock();
       setInterval(updateClock, 1000);
