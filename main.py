@@ -1,5 +1,8 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for
 from db import init_db, get_next_reminder, add_reminder
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
+from db import get_next_reminder
 
 
 app = Flask(__name__)
@@ -31,8 +34,26 @@ def add_reminder_route():
     add_reminder(title, time, timestamp)
     return redirect(url_for("dashboard"))
 
+def check_reminders():
+    reminder = get_next_reminder()
+    if reminder is None:
+        return
+
+    now = datetime.now().isoformat(timespec="seconds")
+
+    # If the reminder timestamp is in the past or now, trigger it
+    if reminder["timestamp"] <= now:
+        print(f"Reminder triggered: {reminder['title']} at {reminder['time']}")
+        # Later: TTS, UI highlight, logging, etc.
+
+
 def main():
     init_db()
+
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(check_reminders, "interval", seconds=30)
+    scheduler.start()
+
     app.run(debug=True)
 
 if __name__ == '__main__':
