@@ -1,5 +1,5 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for
-from db import init_db, get_next_reminder, add_reminder
+from db import init_db, get_next_reminder, add_reminder, log_button_press
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 from db import get_next_reminder
@@ -35,6 +35,17 @@ def add_reminder_route():
     add_reminder(title, time, timestamp)
     return redirect(url_for("dashboard"))
 
+@app.route("/api/test-press", methods=["POST"])
+def api_test_press():
+    press_type = request.json.get("type", "short_press")
+    log_button_press(press_type)
+    reminder = get_next_reminder()
+    if reminder:
+        speak(f"Your next reminder is {reminder['title']} at {reminder['time']}")
+    else:
+        speak("You have no reminders scheduled")
+    return jsonify({"status": "ok"})
+
 def check_reminders():
     reminder = get_next_reminder()
     if reminder is None:
@@ -61,13 +72,13 @@ def main():
     scheduler.add_job(
         check_reminders,
         "interval",
-        seconds=30,
+        seconds=60,
         max_instances=1,
         coalesce=True
     )
     scheduler.start()
 
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
 
 if __name__ == '__main__':
     main()
