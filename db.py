@@ -20,9 +20,16 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
             time TEXT NOT NULL,
-            timestamp TEXT NOT NULL
+            timestamp TEXT NOT NULL,
+            notified INTEGER DEFAULT 0
         )
     """)
+
+    # Migrate existing databases that lack the notified column
+    try:
+        c.execute("ALTER TABLE reminders ADD COLUMN notified INTEGER DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass  # Column already exists
 
     conn.commit()
     conn.close()
@@ -45,8 +52,9 @@ def get_next_reminder():
     c = conn.cursor()
 
     c.execute("""
-        SELECT title, time, timestamp
+        SELECT id, title, time, timestamp
         FROM reminders
+        WHERE notified = 0
         ORDER BY timestamp ASC
         LIMIT 1
     """)
@@ -56,12 +64,43 @@ def get_next_reminder():
 
     if row:
         return {
-            "title": row[0],
-            "time": row[1],
-            "timestamp": row[2]
+            "id": row[0],
+            "title": row[1],
+            "time": row[2],
+            "timestamp": row[3]
         }
     else:
         return None
+
+
+def get_pending_reminders():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    c.execute("""
+        SELECT id, title, time, timestamp
+        FROM reminders
+        WHERE notified = 0
+        ORDER BY timestamp ASC
+    """)
+
+    rows = c.fetchall()
+    conn.close()
+
+    return [
+        {"id": row[0], "title": row[1], "time": row[2], "timestamp": row[3]}
+        for row in rows
+    ]
+
+
+def mark_reminder_notified(reminder_id):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    c.execute("UPDATE reminders SET notified = 1 WHERE id = ?", (reminder_id,))
+
+    conn.commit()
+    conn.close()
 
 
 def add_reminder(title, time, timestamp):
