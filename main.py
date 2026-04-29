@@ -3,6 +3,7 @@ from db import init_db, get_next_reminder, add_reminder
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime
 from db import get_next_reminder
+import pyttsx3
 
 
 app = Flask(__name__)
@@ -41,17 +42,29 @@ def check_reminders():
 
     now = datetime.now().isoformat(timespec="seconds")
 
-    # If the reminder timestamp is in the past or now, trigger it
     if reminder["timestamp"] <= now:
-        print(f"Reminder triggered: {reminder['title']} at {reminder['time']}")
-        # Later: TTS, UI highlight, logging, etc.
+        message = f"It's time to {reminder['title']}"
+        print(f"Reminder triggered: {message}")
+        speak(message)
 
+def speak(text):
+    tts_engine.say(text)
+    tts_engine.runAndWait()
 
 def main():
     init_db()
 
+    global tts_engine
+    tts_engine = pyttsx3.init()
+
     scheduler = BackgroundScheduler()
-    scheduler.add_job(check_reminders, "interval", seconds=30)
+    scheduler.add_job(
+        check_reminders,
+        "interval",
+        seconds=30,
+        max_instances=1,
+        coalesce=True
+    )
     scheduler.start()
 
     app.run(debug=True)
