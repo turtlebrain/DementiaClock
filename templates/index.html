@@ -114,6 +114,43 @@
       updateReminder().catch(console.error); // Call updateReminder and handle errors
       setInterval(updateReminder, 30000); // refresh every 30 seconds
     </script>
+    <button id="reminderBtn" style="padding:20px; font-size:24px;">
+      Press for Reminder
+    </button>
+
+    <script>
+    (function () {
+      const btn = document.getElementById("reminderBtn");
+      let pressStart = null;
+
+      async function sendPress(type) {
+        await fetch("/api/test-press", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type })
+        });
+      }
+
+      function onStart() {
+        pressStart = Date.now();
+      }
+
+      function onEnd(e) {
+        e.preventDefault();
+        if (pressStart === null) return;
+        const duration = Date.now() - pressStart;
+        pressStart = null;
+        const type = duration >= 1000 ? "long_press" : "short_press";
+        sendPress(type);
+      }
+
+      btn.addEventListener("mousedown", onStart);
+      btn.addEventListener("mouseup", onEnd);
+      btn.addEventListener("touchstart", onStart, { passive: true });
+      btn.addEventListener("touchend", onEnd);
+    })();
+    </script>
+    
   </body>
   
 </html>

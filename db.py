@@ -8,6 +8,14 @@ def init_db():
     c = conn.cursor()
 
     c.execute("""
+        CREATE TABLE IF NOT EXISTS button_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            type TEXT NOT NULL
+        )
+    """)
+
+    c.execute("""
         CREATE TABLE IF NOT EXISTS reminders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             title TEXT NOT NULL,
@@ -18,6 +26,19 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+def log_button_press(press_type):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+
+    c.execute("""
+        INSERT INTO button_logs (timestamp, type)
+        VALUES (datetime('now'), ?)
+    """, (press_type,))
+
+    conn.commit()
+    conn.close()
+
 
 def get_next_reminder():
     conn = sqlite3.connect(DB_PATH)
